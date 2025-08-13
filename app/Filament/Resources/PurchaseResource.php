@@ -3,15 +3,18 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\PurchaseResource\Pages;
-use App\Filament\Resources\PurchaseResource\RelationManagers;
 use App\Models\Purchase;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\Repeater;
 
 class PurchaseResource extends Resource
 {
@@ -19,11 +22,129 @@ class PurchaseResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
+    // Konstanta untuk decimal agar tidak duplikasi
+
+
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                //
+                Select::make('supplier_id')
+                    ->label('Supplier')
+                    ->relationship('supplier', 'name')
+                    ->required(),
+
+                TextInput::make('invoice_number')
+                    ->label('No. Invoice')
+                    ->required(),
+
+                DatePicker::make('date')
+                    ->label('Tanggal Pembelian')
+                    ->default(now())
+                    ->required(),
+
+                TextInput::make('total_price')
+                    ->label('Total Harga')
+                    ->numeric()
+                    ->required(),
+
+                Select::make('payment_status')
+                    ->label('Status Pembayaran')
+                    ->options([
+                        'unpaid' => 'Belum Dibayar',
+                        'partial' => 'Sebagian Dibayar',
+                        'paid' => 'Lunas',
+                    ])
+                    ->default('unpaid')
+                    ->required(),
+
+                TextInput::make('amount_paid')
+                    ->label('Jumlah Dibayar')
+                    ->numeric()
+                    ->default(0),
+
+                TextInput::make('amount_due')
+                    ->label('Sisa Bayar')
+                    ->numeric()
+                    ->default(0),
+
+                DatePicker::make('due_date')
+                    ->label('Tanggal Jatuh Tempo')
+                    ->nullable(),
+
+                Textarea::make('notes')
+                    ->label('Catatan')
+                    ->nullable(),
+
+                Repeater::make('purchaseItems')
+                    ->label('Daftar Barang')
+                    ->relationship('purchaseItems') // pastikan ada di model Purchase
+                    ->columns(5)
+                    ->addActionLabel('Tambah Barang')
+                    ->schema([
+                        Select::make('product_id')
+                            ->label('Produk')
+                            ->relationship('product', 'name') // pastikan ada di model PurchaseItem
+                            ->required(),
+
+                        TextInput::make('qty_unit')
+                            ->label('Jumlah Unit')
+                            ->numeric()
+                            ->required(),
+
+                        TextInput::make('weight_kg')
+                            ->label('Berat (kg)')
+                            ->numeric()
+                            ->required(),
+
+                        TextInput::make('price_per_kg')
+                            ->label('Harga per kg')
+                            ->numeric()
+                            ->required(),
+
+                        TextInput::make('total_price')
+                            ->label('Total Harga')
+                            ->numeric()
+                            ->disabled()
+                            ->dehydrateStateUsing(
+                                fn($state, $component) => ($component->getParent()->getState()['weight_kg'] ?? 0) *
+                                    ($component->getParent()->getState()['price_per_kg'] ?? 0)
+                            ),
+
+                        // Nested Repeater untuk ProductVariant
+                        Repeater::make('productVariants')
+                            ->label('Varian Produk')
+                            ->relationship('productVariants')
+                            ->columns(3)
+                            ->addActionLabel('Tambah Varian')
+                            ->schema([
+                                Select::make('id')
+                                    ->label('Varian')
+                                    ->options(function ($get) {
+                                        $productId = $get('../../product_id');
+                                        if (!$productId) {
+                                            return [];
+                                        }
+                                        return \App\Models\ProductVariant::where('product_id', $productId)
+                                            ->pluck('name', 'id');
+                                    })
+                                    ->required(),
+
+                                TextInput::make('weight_kg')
+                                    ->label('Berat Varian')
+                                    ->numeric()
+                                    ->required(),
+
+                                TextInput::make('price_sale')
+                                    ->label('Harga Jual')
+                                    ->numeric()
+                                    ->required(),
+                            ])
+                            ->columns(3)
+                            ->addActionLabel('Tambah Varian'),
+                    ])
+                    ->columns(5)
+                    ->addActionLabel('Tambah Barang'),
             ]);
     }
 
@@ -31,7 +152,16 @@ class PurchaseResource extends Resource
     {
         return $table
             ->columns([
-                //
+                TextColumn::make('id')->label('ID')->sortable(),
+                TextColumn::make('supplier.name')->label('Supplier')->sortable(),
+                TextColumn::make('invoice_number')->label('No. Invoice')->sortable(),
+                TextColumn::make('date')->label('Tanggal Pembelian')->date()->sortable(),
+                TextColumn::make('total_price')->label('Total Harga')->money('idr', true),
+                TextColumn::make('payment_status')->label('Status Pembayaran')->sortable(),
+                TextColumn::make('amount_paid')->label('Jumlah Dibayar')->money('idr', true),
+                TextColumn::make('amount_due')->label('Sisa Bayar')->money('idr', true),
+                TextColumn::make('due_date')->label('Tanggal Jatuh Tempo')->date(),
+                TextColumn::make('notes')->label('Catatan')->limit(50),
             ])
             ->filters([
                 //
@@ -40,9 +170,7 @@ class PurchaseResource extends Resource
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
+                Tables\Actions\DeleteBulkAction::make(),
             ]);
     }
 

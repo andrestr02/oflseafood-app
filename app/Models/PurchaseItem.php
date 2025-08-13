@@ -23,8 +23,17 @@ class PurchaseItem extends Model
         return $this->belongsTo(Product::class);
     }
 
-    public function createdProductItems()
+    public function productItems()
     {
         return $this->hasMany(ProductItem::class);
+    }
+    public function getDisplayLabelAttribute()
+    {
+        return "Purchase #{$this->purchase_id} – {$this->weight_kg} kg " . $this->product->name;
+    }
+
+    public function productVariants()
+    {
+        return $this->hasMany(ProductVariant::class, 'purchase_item_id');
     }
 }

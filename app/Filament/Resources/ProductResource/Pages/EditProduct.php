@@ -12,7 +12,7 @@ class EditProduct extends EditRecord
 
     protected function mutateFormDataBeforeSave(array $data): array
     {
-        // Misalnya: validasi supaya harga per kg tidak minus
+
         if ($data['price_per_kg'] < 0) {
             $data['price_per_kg'] = 0;
         }

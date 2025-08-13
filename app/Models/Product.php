@@ -5,6 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\ProductVariant;
 
+use App\Models\Category;
+
+
 
 class Product extends Model
 {
@@ -14,20 +17,20 @@ class Product extends Model
     {
         return $this->hasMany(ProductItem::class);
     }
-}
-
-// app/Models/ProductItem.php
-class ProductItem extends Model
-{
-    protected $fillable = ['product_id', 'weight_kg', 'price_total', 'status'];
-
-    public function product()
-    {
-        return $this->belongsTo(Product::class);
-    }
-
     public function variants()
     {
         return $this->hasMany(ProductVariant::class);
+    }
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
+    }
+    public function getTotalStockAttribute()
+    {
+        return $this->variants()->sum('stock');
+    }
+    public function purchaseItems()
+    {
+        return $this->hasMany(PurchaseItem::class);
     }
 }

@@ -20,4 +20,12 @@ class ProductVariant extends Model
     {
         return $this->belongsTo(Product::class);
     }
+    public function purchaseItem()
+    {
+        return $this->belongsTo(PurchaseItem::class, 'purchase_item_id');
+    }
+    public function variant()
+    {
+        return $this->belongsTo(Product::class, 'product_id');
+    }
 }

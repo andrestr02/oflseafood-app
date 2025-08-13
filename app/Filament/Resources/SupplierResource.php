@@ -15,7 +15,7 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Forms\Components\TextInput;
 
 use Filament\Forms\Components\Textarea;
-use Filament\Forms\Components\TextColumn;
+use Filament\Tables\Columns\TextColumn;
 
 
 class SupplierResource extends Resource
@@ -31,19 +31,19 @@ class SupplierResource extends Resource
         return $form
             ->schema([
                 TextInput::make('name')
-                    ->label('Nama Pemasok')
+                    ->label('Nama Suplier')
                     ->required()
                     ->maxLength(255),
                 TextInput::make('phone')
-                    ->label('Telepon Pemasok')
+                    ->label('Telepon Suplier')
                     ->tel()
                     ->maxLength(20),
                 TextInput::make('email')
-                    ->label('Email Pemasok')
+                    ->label('Email Suplier')
                     ->email()
                     ->maxLength(255),
                 Textarea::make('address')
-                    ->label('Alamat Pemasok')
+                    ->label('Alamat Suplier')
                     ->rows(3)
                     ->maxLength(65535),
                 TextInput::make('notes'),
@@ -54,18 +54,14 @@ class SupplierResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('name')
-                    ->label('Nama Pemasok')
-                    ->searchable()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('phone')
-                    ->label('Telepon Pemasok')
-                    ->searchable()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('email')
-                    ->label('Email Pemasok')
-                    ->searchable()
-                    ->sortable(),
+                TextColumn::make('id')->label('ID')->sortable(),
+                TextColumn::make('name')->label('Nama'),
+                TextColumn::make('phone')->label('Telepon'),
+                TextColumn::make('email')->label('Email')->limit(30),
+                TextColumn::make('address')->label('Alamat')->limit(30),
+                TextColumn::make('notes')->label('Catatan')->limit(30),
+                TextColumn::make('created_at')->label('Dibuat')->dateTime(),
+                TextColumn::make('updated_at')->label('Diperbarui')->dateTime(),
             ])
             ->filters([
                 //
