@@ -1,5 +1,5 @@
 git add .
 git commit -m "Awal 1"
 git push origin main
-git push origin main
+
 

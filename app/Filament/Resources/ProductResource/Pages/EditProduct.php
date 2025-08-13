@@ -10,10 +10,12 @@ class EditProduct extends EditRecord
 {
     protected static string $resource = ProductResource::class;
 
-    protected function getHeaderActions(): array
+    protected function mutateFormDataBeforeSave(array $data): array
     {
-        return [
-            Actions\DeleteAction::make(),
-        ];
+        // Misalnya: validasi supaya harga per kg tidak minus
+        if ($data['price_per_kg'] < 0) {
+            $data['price_per_kg'] = 0;
+        }
+        return $data;
     }
 }
