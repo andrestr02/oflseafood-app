@@ -13,6 +13,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Repeater;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Forms\Components\Hidden;
 
 class PurchaseItemResource extends Resource
 {
@@ -61,7 +62,8 @@ class PurchaseItemResource extends Resource
             TextInput::make('total_price')
                 ->label('Total Harga')
                 ->numeric()
-                ->disabled(),
+                ->disabled()
+                ->dehydrated(true),
 
 
             Repeater::make('productVariants')
@@ -70,7 +72,7 @@ class PurchaseItemResource extends Resource
                 ->schema([
                     Select::make('id')
                         ->label('Varian')
-                        ->relationship('variant', 'name') // pastikan relasi variant ada di model ProductVariant
+                        ->relationship('variant', 'name')
                         ->required(),
 
                     TextInput::make('weight')
