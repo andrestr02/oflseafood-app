@@ -17,7 +17,7 @@ use Filament\Forms\Components\TextInput;
 class ProductVariantResource extends Resource
 {
     protected static ?string $model = ProductVariant::class;
-    protected static ?string $navigationIcon = 'heroicon-o-adjustments';
+    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
     public static function form(Form $form): Form
     {

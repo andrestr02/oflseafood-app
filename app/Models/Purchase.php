@@ -11,14 +11,14 @@ class Purchase extends Model
 
     protected $fillable = ['supplier_id', 'invoice_number', 'date', 'total_price', 'payment_status', 'amount_paid', 'amount_due', 'due_date', 'notes'];
 
-    private const DECIMAL = 'decimal:2';
+
 
     protected $casts = [
         'date' => 'datetime',
         'due_date' => 'datetime',
-        'total_price' => self::DECIMAL,
-        'amount_paid' => self::DECIMAL,
-        'amount_due' => self::DECIMAL,
+        'total_price' => 'integer',
+        'amount_paid' => 'integer',
+        'amount_due' => 'integer',
     ];
     public function supplier()
     {
@@ -31,5 +31,9 @@ class Purchase extends Model
     public function payments()
     {
         return $this->hasMany(PurchasePayment::class);
+    }
+    public function items()
+    {
+        return $this->hasMany(PurchaseItem::class);
     }
 }

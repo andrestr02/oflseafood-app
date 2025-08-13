@@ -21,7 +21,7 @@ class PurchaseResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-shopping-cart';
 
 
-    private const DECIMAL = 'decimal:2';
+
 
     public static function form(Form $form): Form
     {

@@ -17,7 +17,7 @@ use Filament\Tables\Columns\TextColumn;
 class PurchaseItemResource extends Resource
 {
     protected static ?string $model = PurchaseItem::class;
-    protected static ?string $navigationIcon = 'heroicon-o-collection';
+    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
     private const DECIMAL = 'decimal:2';
 

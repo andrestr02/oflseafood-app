@@ -5,18 +5,15 @@ namespace App\Filament\Resources\ProductResource\Pages;
 use App\Filament\Resources\ProductResource;
 use Filament\Resources\Pages\CreateRecord;
 
-
 class CreateProduct extends CreateRecord
 {
     protected static string $resource = ProductResource::class;
 
-    /**
-     * Pastikan stock_kg selalu ada sebelum disimpan.
-     */
     protected function mutateFormDataBeforeCreate(array $data): array
     {
-        $data['stock_kg'] = $data['stock_kg'] ?? 0;
-
+        if (!isset($data['stock_kg']) || $data['stock_kg'] === null) {
+            $data['stock_kg'] = 0;
+        }
         return $data;
     }
 }
