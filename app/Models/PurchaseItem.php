@@ -36,4 +36,5 @@ class PurchaseItem extends Model
     {
         return $this->hasMany(ProductVariant::class, 'purchase_item_id');
     }
+    
 }

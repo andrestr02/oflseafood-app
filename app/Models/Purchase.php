@@ -20,28 +20,14 @@ class Purchase extends Model
         'amount_paid' => self::DECIMAL,
         'amount_due' => self::DECIMAL,
     ];
-    public function product()
-    {
-        return $this->belongsTo(Product::class);
-    }
     public function supplier()
     {
         return $this->belongsTo(Supplier::class);
     }
-    public function productVariants()
-    {
-        return $this->hasMany(ProductVariant::class, 'purchase_item_id');
-    }
-    public function productItem()
-    {
-        return $this->belongsTo(ProductItem::class, 'purchase_item_id');
-    }
-
     public function purchaseItems()
     {
         return $this->hasMany(PurchaseItem::class);
     }
-
     public function payments()
     {
         return $this->hasMany(PurchasePayment::class);
