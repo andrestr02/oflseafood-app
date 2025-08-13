@@ -11,7 +11,11 @@ class PurchaseItem extends Model
 
     protected $fillable = ['purchase_id', 'product_id', 'qty_unit', 'weight_kg', 'price_per_kg', 'total_price'];
 
-    protected $casts = ['weight_kg' => 'decimal:3', 'price_per_kg' => 'decimal:2', 'total_price' => 'decimal:2'];
+    protected $casts = [
+        'weight_kg' => 'integer',
+        'price_per_kg' => 'integer',
+        'total_price' => 'integer',
+    ];
 
     public function purchase()
     {
@@ -36,5 +40,4 @@ class PurchaseItem extends Model
     {
         return $this->hasMany(ProductVariant::class, 'purchase_item_id');
     }
-    
 }

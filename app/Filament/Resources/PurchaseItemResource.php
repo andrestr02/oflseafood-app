@@ -19,7 +19,7 @@ class PurchaseItemResource extends Resource
     protected static ?string $model = PurchaseItem::class;
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
-    private const DECIMAL = 'decimal:2';
+
 
     public static function form(Form $form): Form
     {
@@ -42,21 +42,27 @@ class PurchaseItemResource extends Resource
             TextInput::make('weight_kg')
                 ->label('Berat (kg)')
                 ->numeric()
-                ->required(),
+                ->required()
+                ->reactive()
+                ->afterStateUpdated(function ($state, callable $set, callable $get) {
+                    $set('total_price', $state * ($get('price_per_kg') ?? 0));
+                }),
 
             TextInput::make('price_per_kg')
                 ->label('Harga per kg')
                 ->numeric()
-                ->required(),
+                ->required()
+                ->reactive()
+                ->afterStateUpdated(function ($state, callable $set, callable $get) {
+                    $set('total_price', $state * ($get('weight_kg') ?? 0));
+                }),
+
 
             TextInput::make('total_price')
                 ->label('Total Harga')
                 ->numeric()
-                ->disabled()
-                ->dehydrateStateUsing(
-                    fn($state, $component) => ($component->getParent()->getState()['weight_kg'] ?? 0) *
-                        ($component->getParent()->getState()['price_per_kg'] ?? 0)
-                ),
+                ->disabled(),
+
 
             Repeater::make('productVariants')
                 ->label('Varian Produk')

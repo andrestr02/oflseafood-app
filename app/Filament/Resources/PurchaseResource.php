@@ -14,6 +14,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\Repeater;
 
 class PurchaseResource extends Resource
 {
@@ -41,10 +42,53 @@ class PurchaseResource extends Resource
                     ->default(now())
                     ->required(),
 
+                // Repeater untuk PurchaseItem
+                Repeater::make('purchaseItems')
+                    ->label('Daftar Barang')
+                    ->relationship('purchaseItems')
+                    ->columns(5)
+                    ->addActionLabel('Tambah Barang')
+                    ->schema([
+                        Select::make('product_id')
+                            ->label('Produk')
+                            ->relationship('product', 'name')
+                            ->required(),
+
+                        TextInput::make('qty_unit')
+                            ->label('Jumlah Unit')
+                            ->numeric()
+                            ->required(),
+
+                        TextInput::make('weight_kg')
+                            ->label('Berat (kg)')
+                            ->numeric()
+                            ->reactive()
+                            ->afterStateUpdated(function ($state, callable $set, $get) {
+                                $set('total_price', $state * ($get('price_per_kg') ?? 0));
+                            }),
+
+                        TextInput::make('price_per_kg')
+                            ->label('Harga per kg')
+                            ->numeric()
+                            ->reactive()
+                            ->afterStateUpdated(function ($state, callable $set, $get) {
+                                $set('total_price', $state * ($get('weight_kg') ?? 0));
+                            }),
+
+                        TextInput::make('total_price')
+                            ->label('Total Harga')
+                            ->numeric()
+                            ->disabled(),
+                    ]),
+
                 TextInput::make('total_price')
                     ->label('Total Harga')
                     ->numeric()
-                    ->required(),
+                    ->disabled()
+                    ->dehydrateStateUsing(
+                        fn($state, $component) => ($component->getState()['weight_kg'] ?? 0) * ($component->getState()['price_per_kg'] ?? 0)
+                    ),
+
 
                 Select::make('payment_status')
                     ->label('Status Pembayaran')
@@ -64,7 +108,7 @@ class PurchaseResource extends Resource
                 TextInput::make('amount_due')
                     ->label('Sisa Bayar')
                     ->numeric()
-                    ->default(0),
+                    ->disabled(),
 
                 DatePicker::make('due_date')
                     ->label('Tanggal Jatuh Tempo')
