@@ -36,4 +36,9 @@ class Purchase extends Model
     {
         return $this->hasMany(PurchaseItem::class);
     }
+    public function products()
+    {
+        return $this->belongsToMany(Product::class, 'purchase_items', 'purchase_id', 'product_id')
+            ->withPivot('qty_unit', 'weight_kg', 'price_per_kg', 'total_price');
+    }
 }
