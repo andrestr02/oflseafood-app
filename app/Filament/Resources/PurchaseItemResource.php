@@ -12,25 +12,26 @@ use Filament\Tables\Table;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Repeater;
-use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\Hidden;
-use App\Models\Variant;
+use Filament\Forms\Components\Placeholder;
+use Filament\Tables\Columns\TextColumn;
 
 class PurchaseItemResource extends Resource
 {
     protected static ?string $model = PurchaseItem::class;
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
-
-
     public static function form(Form $form): Form
     {
         return $form->schema([
+
+            // Pilih Purchase
             Select::make('purchase_id')
                 ->label('Purchase (Nota)')
                 ->relationship('purchase', 'invoice_number')
                 ->required(),
 
+            // Pilih Produk
             Select::make('product_id')
                 ->label('Produk')
                 ->relationship('product', 'name')
@@ -42,7 +43,7 @@ class PurchaseItemResource extends Resource
                 ->required(),
 
             TextInput::make('weight_kg')
-                ->label('Berat (kg)')
+                ->label('Berat Total (kg)')
                 ->numeric()
                 ->required()
                 ->reactive()
@@ -59,44 +60,43 @@ class PurchaseItemResource extends Resource
                     $set('total_price', $state * ($get('weight_kg') ?? 0));
                 }),
 
-
             TextInput::make('total_price')
                 ->label('Total Harga')
                 ->numeric()
                 ->disabled()
                 ->dehydrated(true),
 
+            // Placeholder untuk warning
+            Placeholder::make('weight_warning')
+                ->label('Peringatan Selisih Berat')
+                ->content(function ($get) {
+                    $purchaseWeight = (float) $get('weight_kg') ?? 0;
+                    $items = $get('product_items') ?? [];
+                    $totalItemWeight = array_sum(array_map(fn($i) => (float) ($i['weight_kg'] ?? 0), $items));
+                    $selisih = $purchaseWeight - $totalItemWeight;
 
-            Repeater::make('productVariants')
-                ->label('Varian Produk')
-                ->relationship('productVariants')
+                    if ($purchaseWeight == 0 || $totalItemWeight == 0) {
+                        return 'Belum ada data untuk dihitung.';
+                    }
+
+                    // Toleransi 0.2 kg
+                    if (abs($selisih) <= 0.2) {
+                        return "✅ Selisih masih dalam batas toleransi (" . number_format($selisih, 2) . " kg).";
+                    }
+
+                    return "⚠️ Selisih berat: " . number_format($selisih, 2) . " kg.";
+                }),
+
+            // Repeater Product Item
+            Repeater::make('product_items')
+                ->label('Item Produk')
+                ->relationship('productItems')
                 ->schema([
-                    Select::make('variant_id')
-                        ->label('Varian')
-                        ->relationship('variant', 'name')
-                        ->required()
-                        ->reactive()
-                        ->afterStateUpdated(function ($state, callable $set, callable $get) {
-                            // Ambil nama variant dari relasi dan set ke name
-                            $variant = \App\Models\Variant::find($state);
-                            if ($variant) {
-                                $set('name', $variant->name);
-                            }
+                    Hidden::make('product_id')
+                        ->default(fn($get) => $get('../../product_id')),
 
-                            // Set juga product_id dari purchase_item parent
-                            if ($get('../../product_id')) {
-                                $set('product_id', $get('../../product_id'));
-                            }
-                        }),
-
-                    Hidden::make('product_id'),
-
-                    TextInput::make('name')
-                        ->label('Nama Varian')
-                        ->required(),
-
-                    TextInput::make('weight')
-                        ->label('Berat Varian (kg)')
+                    TextInput::make('weight_kg')
+                        ->label('Berat (kg)')
                         ->numeric()
                         ->required(),
 
@@ -106,8 +106,7 @@ class PurchaseItemResource extends Resource
                         ->required(),
                 ])
                 ->columns(3)
-                ->addActionLabel('Tambah Varian'),
-
+                ->addActionLabel('Tambah Item'),
         ]);
     }
 
