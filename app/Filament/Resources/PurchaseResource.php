@@ -15,6 +15,10 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\Placeholder;
+use Filament\Forms\Components\Actions\Action;
+
+
 
 class PurchaseResource extends Resource
 {
@@ -33,9 +37,9 @@ class PurchaseResource extends Resource
                     ->relationship('supplier', 'name')
                     ->required(),
 
-                TextInput::make('invoice_number')
+                Placeholder::make('invoice_number')
                     ->label('No. Invoice')
-                    ->required(),
+                    ->content(fn($get) => $get('invoice_number') ?? 'Sedang dibuat otomatis'),
 
                 DatePicker::make('date')
                     ->label('Tanggal Pembelian')
@@ -76,18 +80,40 @@ class PurchaseResource extends Resource
                             }),
 
                         TextInput::make('total_price')
-                            ->label('Total Harga')
+                            ->label('Total Harga Produk')
                             ->numeric()
-                            ->disabled(),
+                            ->hidden() // tetap submit ke database
+                            ->reactive()
+                            ->afterStateUpdated(function (callable $set, $get) {
+                                $set('total_price', ($get('weight_kg') ?? 0) * ($get('price_per_kg') ?? 0));
+                            })
+                            ->afterStateHydrated(function (callable $set, $get) {
+                                $set('total_price', ($get('weight_kg') ?? 0) * ($get('price_per_kg') ?? 0));
+                            }),
+                        Placeholder::make('display_total_price')
+                            ->label('Total Harga Produk')
+                            ->content(fn($get) => ($get('weight_kg') ?? 0) * ($get('price_per_kg') ?? 0)),
+
                     ]),
 
+                // Total transaksi - diganti Placeholder agar otomatis update
+                Placeholder::make('total_price')
+                    ->label('Total Transaksi')
+                    ->content(fn($get) => collect($get('purchaseItems') ?? [])
+                        ->sum(fn($item) => $item['total_price'] ?? 0)),
                 TextInput::make('total_price')
-                    ->label('Total Harga')
+                    ->label('Total Transaksi')
                     ->numeric()
-                    ->disabled()
-                    ->dehydrateStateUsing(
-                        fn($state, $component) => ($component->getState()['weight_kg'] ?? 0) * ($component->getState()['price_per_kg'] ?? 0)
-                    ),
+                    ->reactive()
+                    ->readonly() // readonly = tampil tapi user tidak bisa edit
+                    ->afterStateHydrated(function (callable $set, $get) {
+                        $items = $get('purchaseItems') ?? [];
+                        $set('total_price', collect($items)->sum(fn($item) => $item['total_price'] ?? 0));
+                    })
+                    ->afterStateUpdated(function (callable $set, $get) {
+                        $items = $get('purchaseItems') ?? [];
+                        $set('total_price', collect($items)->sum(fn($item) => $item['total_price'] ?? 0));
+                    }),
 
 
                 Select::make('payment_status')
@@ -119,6 +145,8 @@ class PurchaseResource extends Resource
                     ->nullable(),
             ]);
     }
+
+
 
     public static function table(Table $table): Table
     {

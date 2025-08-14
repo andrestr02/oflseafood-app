@@ -41,4 +41,27 @@ class Purchase extends Model
         return $this->belongsToMany(Product::class, 'purchase_items', 'purchase_id', 'product_id')
             ->withPivot('qty_unit', 'weight_kg', 'price_per_kg', 'total_price');
     }
+    protected static function booted()
+    {
+        static::creating(function ($purchase) {
+            // Format: INV-YYYYMMDD-0001
+            $datePart = now()->format('Ymd');
+
+            // Ambil nomor terakhir untuk hari ini
+            $last = self::whereDate('created_at', now()->toDateString())
+                ->latest('id')
+                ->first();
+
+            $number = $last ? ((int) substr($last->invoice_number, -4)) + 1 : 1;
+
+            $purchase->invoice_number = 'INV-' . $datePart . '-' . str_pad($number, 4, '0', STR_PAD_LEFT);
+        });
+        static::saving(function ($purchase) {
+            // Hitung total transaksi dari semua purchaseItems
+            $total = $purchase->purchaseItems->sum(function ($item) {
+                return $item->total_price ?? 0;
+            });
+            $purchase->total_price = $total;
+        });
+    }
 }
