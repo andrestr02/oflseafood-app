@@ -14,6 +14,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Repeater;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\Hidden;
+use App\Models\Variant;
 
 class PurchaseItemResource extends Resource
 {
@@ -36,7 +37,7 @@ class PurchaseItemResource extends Resource
                 ->required(),
 
             TextInput::make('qty_unit')
-                ->label('Jumlah Unit')
+                ->label('Jumlah Unit (ekor)')
                 ->numeric()
                 ->required(),
 
@@ -70,9 +71,28 @@ class PurchaseItemResource extends Resource
                 ->label('Varian Produk')
                 ->relationship('productVariants')
                 ->schema([
-                    Select::make('id')
+                    Select::make('variant_id')
                         ->label('Varian')
                         ->relationship('variant', 'name')
+                        ->required()
+                        ->reactive()
+                        ->afterStateUpdated(function ($state, callable $set, callable $get) {
+                            // Ambil nama variant dari relasi dan set ke name
+                            $variant = \App\Models\Variant::find($state);
+                            if ($variant) {
+                                $set('name', $variant->name);
+                            }
+
+                            // Set juga product_id dari purchase_item parent
+                            if ($get('../../product_id')) {
+                                $set('product_id', $get('../../product_id'));
+                            }
+                        }),
+
+                    Hidden::make('product_id'),
+
+                    TextInput::make('name')
+                        ->label('Nama Varian')
                         ->required(),
 
                     TextInput::make('weight')
@@ -87,6 +107,7 @@ class PurchaseItemResource extends Resource
                 ])
                 ->columns(3)
                 ->addActionLabel('Tambah Varian'),
+
         ]);
     }
 

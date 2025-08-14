@@ -24,8 +24,9 @@ class ProductVariant extends Model
     {
         return $this->belongsTo(PurchaseItem::class, 'purchase_item_id');
     }
+
     public function variant()
     {
-        return $this->belongsTo(ProductVariant::class, 'id'); // sesuaikan field jika perlu
+        return $this->belongsTo(Variant::class);
     }
 }
