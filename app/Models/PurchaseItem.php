@@ -33,11 +33,15 @@ class PurchaseItem extends Model
     }
     public function getDisplayLabelAttribute()
     {
-        return "Purchase #{$this->purchase_id} – {$this->weight_kg} kg " . $this->product->name;
+        return "Purchase #{$this->purchase_id} - {$this->weight_kg} kg " . $this->product->name;
     }
 
     public function productVariants()
     {
         return $this->hasMany(ProductVariant::class, 'purchase_item_id');
+    }
+    public function variant()
+    {
+        return $this->belongsTo(\App\Models\ProductVariant::class, 'variant_id');
     }
 }

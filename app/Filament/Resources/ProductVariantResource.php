@@ -23,10 +23,7 @@ class ProductVariantResource extends Resource
     {
         return $form
             ->schema([
-                Select::make('purchase_item_id')
-                    ->label('Item Pembelian')
-                    ->relationship('purchaseItem', 'id') // bisa ditampilkan nomor nota atau deskripsi
-                    ->required(),
+
 
                 Select::make('product_id')
                     ->label('Produk')
@@ -45,7 +42,6 @@ class ProductVariantResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('id'),
-                Tables\Columns\TextColumn::make('purchaseItem.id')->label('Item Pembelian'),
                 Tables\Columns\TextColumn::make('product.name')->label('Produk'),
                 Tables\Columns\TextColumn::make('name')->label('Varian'),
                 Tables\Columns\TextColumn::make('weight')->label('Berat'),
